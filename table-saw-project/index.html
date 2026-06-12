@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Table Saw - 5 Cut Method</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: -apple-system, system-ui, sans-serif; background: #1a1a2e; color: #eee; min-height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.app { display: flex; flex-direction: column; height: 100dvh; padding: 8px; gap: 6px; }
+
+.header { display: flex; align-items: center; justify-content: space-between; }
+.title { font-size: 0.9rem; font-weight: 600; }
+.btn-new { padding: 8px 18px; background: #333; color: #fff; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+.btn-new:active { background: #555; }
+
+/* Diagram */
+.diagram { flex: 1; min-height: 0; position: relative; background: #f0f0f4; border-radius: 10px; overflow: hidden; }
+
+/* Saw area - left side */
+.saw { position: absolute; left: 5%; top: 6%; width: 38%; height: 58%; }
+.blade { position: absolute; left: 50%; top: 0; width: 2px; height: 80%; background: #444; transform: translateX(-50%); }
+.blade::before, .blade::after { content: ''; position: absolute; left: -4px; width: 10px; height: 5px; background: #999; border: 1px solid #666; }
+.blade::before { top: 35%; }
+.blade::after { top: 55%; }
+.fence { position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: linear-gradient(to right, #c8a000, #e8d020, #c8a000); border: 1px solid #887020; border-radius: 1px; }
+.fence::before, .fence::after { content: ''; position: absolute; top: 1px; width: 5px; height: 5px; background: #333; border-radius: 50%; }
+.fence::before { left: 2px; }
+.fence::after { right: 2px; }
+.saw-back { position: absolute; top: -15px; width: 100%; text-align: center; font-weight: 700; font-size: 0.7rem; color: #333; }
+.saw-front { position: absolute; bottom: -15px; width: 100%; text-align: center; font-weight: 700; font-size: 0.7rem; color: #333; }
+/* L arrows spanning fence */
+.l-arrows { position: absolute; bottom: -1px; left: -8px; right: -8px; display: flex; align-items: center; height: 10px; }
+.l-arr { font-size: 0.6rem; color: #333; }
+.l-line { flex: 1; height: 1px; background: #333; }
+
+/* Adjust arrows at fence ends - bold arrows with connecting line */
+.adjust-bar { position: absolute; left: 1%; top: calc(6% + 58%); width: 42%; height: 30px; display: flex; align-items: center; opacity: 0; transition: opacity 0.2s; }
+.adjust-bar.show { opacity: 1; }
+.adjust-bar .arr { font-size: 1.6rem; color: #c00; font-weight: 700; line-height: 1; }
+.adjust-bar .line { flex: 1; height: 3px; background: #c00; }
+
+/* Test piece - centre */
+.test-piece { position: absolute; left: 48%; top: 10%; width: 16%; bottom: 24%; background: #f0ddb8; border: 2px solid #333; display: flex; align-items: center; justify-content: center; }
+.tp-text { transform: rotate(-90deg); font-weight: 700; font-size: 0.85rem; color: #555; white-space: nowrap; font-style: italic; }
+.tp-back { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); font-weight: 700; font-size: 0.6rem; color: #333; }
+.tp-front { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); font-weight: 700; font-size: 0.6rem; color: #333; }
+/* K arrow (height of test piece) */
+.k-arrow { position: absolute; right: -12px; top: 0; bottom: 0; width: 1px; background: #333; }
+.k-arrow::before, .k-arrow::after { content: ''; position: absolute; left: -3px; width: 7px; height: 1px; background: #333; }
+.k-arrow::before { top: 0; }
+.k-arrow::after { bottom: 0; }
+/* H arrows (width at top and bottom) */
+.h-line-top { position: absolute; top: 4px; left: -8px; right: -8px; height: 1px; background: #333; }
+.h-line-top::before, .h-line-top::after { content: ''; position: absolute; top: -3px; width: 1px; height: 7px; background: #333; }
+.h-line-top::before { left: 0; }
+.h-line-top::after { right: 0; }
+.h-line-bot { position: absolute; bottom: 4px; left: -8px; right: -8px; height: 1px; background: #333; }
+.h-line-bot::before, .h-line-bot::after { content: ''; position: absolute; top: -3px; width: 1px; height: 7px; background: #333; }
+.h-line-bot::before { left: 0; }
+.h-line-bot::after { right: 0; }
+
+/* Inputs on diagram */
+.dia-input { position: absolute; background: #fff; border: 2px solid #444; border-radius: 3px; font-size: 1rem; font-weight: 700; font-family: -apple-system, system-ui; color: #000080; text-align: center; padding: 5px 4px; width: 76px; height: 34px; cursor: pointer; caret-color: transparent; user-select: none; -webkit-user-select: none; }
+.dia-input.active { background: #fffff0; border-color: #c00; box-shadow: 0 0 0 2px rgba(200,0,0,0.2); }
+/* L input - on the fence */
+.input-l { top: calc(6% + 42%); left: calc(5% + 12%); }
+/* H2 - top right of test piece */
+.input-h2 { top: 6%; right: 8%; }
+/* K - mid right of test piece */
+.input-k { top: calc(10% + 30%); right: 8%; }
+/* H1 - bottom right */
+.input-h1 { bottom: 12%; right: 8%; }
+/* Adjustment - bottom left */
+.input-adj { bottom: 12%; left: 22%; }
+.adj-label { position: absolute; bottom: calc(12% + 4px); left: 2%; font-weight: 700; font-size: 0.7rem; color: #333; }
+
+/* Numpad */
+.numpad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; padding: 2px 0; }
+.numpad button { height: 50px; font-size: 1.3rem; font-weight: 700; border: none; border-radius: 10px; cursor: pointer; touch-action: manipulation; }
+.numpad .num { background: #2d5a1b; color: #fff; }
+.numpad .num:active { background: #3d7a2b; }
+.numpad .act { background: #333; color: #fff; font-size: 1rem; }
+.numpad .act:active { background: #555; }
+.numpad .enter { background: #444; color: #fff; font-size: 1.5rem; }
+.numpad .enter:active { background: #666; }
+</style>
+</head>
+<body>
+<div class="app">
+<div class="header">
+  <span class="title">Table Saw — 5 Cut Method</span>
+  <button class="btn-new" id="btnNew">New</button>
+</div>
+
+<div class="diagram">
+  <!-- Saw top view -->
+  <div class="saw">
+    <span class="saw-back">BACK</span>
+    <div class="blade"></div>
+    <div class="fence"></div>
+    <div class="l-arrows"><span class="l-arr">◀</span><span class="l-line"></span><span class="l-arr">▶</span></div>
+    <span class="saw-front">FRONT</span>
+  </div>
+
+  <!-- Adjust direction: arrow—line—arrow showing which way to push fence -->
+  <div class="adjust-bar" id="adjustBar">
+    <span class="arr" id="arrL">◀</span>
+    <span class="line"></span>
+    <span class="arr" id="arrR">▶</span>
+  </div>
+
+  <!-- Test piece -->
+  <div class="test-piece">
+    <span class="tp-back">BACK</span>
+    <span class="tp-text">5th Cut</span>
+    <span class="tp-front">FRONT</span>
+    <div class="k-arrow"></div>
+    <div class="h-line-top"></div>
+    <div class="h-line-bot"></div>
+  </div>
+
+  <!-- Inputs -->
+  <input class="dia-input input-l" id="inL" readonly placeholder="L">
+  <input class="dia-input input-h2" id="inH2" readonly placeholder="H2">
+  <input class="dia-input input-k" id="inK" readonly placeholder="K">
+  <input class="dia-input input-h1" id="inH1" readonly placeholder="H1">
+  <span class="adj-label">ADJUSTMENT:</span>
+  <input class="dia-input input-adj" id="inAdj" readonly placeholder="—">
+</div>
+
+<div class="numpad">
+  <button class="num" data-v="7">7</button>
+  <button class="num" data-v="8">8</button>
+  <button class="num" data-v="9">9</button>
+  <button class="act" data-v="DEL">DEL</button>
+  <button class="num" data-v="4">4</button>
+  <button class="num" data-v="5">5</button>
+  <button class="num" data-v="6">6</button>
+  <button class="act" data-v="BS">⌫</button>
+  <button class="num" data-v="1">1</button>
+  <button class="num" data-v="2">2</button>
+  <button class="num" data-v="3">3</button>
+  <button class="enter" data-v="ENTER">↵</button>
+  <button class="num" data-v="0">0</button>
+  <button class="num" data-v=".">.</button>
+  <button class="act" style="visibility:hidden"></button>
+  <button class="act" style="visibility:hidden"></button>
+</div>
+</div>
+
+<script>
+const inputs = [document.getElementById('inL'), document.getElementById('inK'), document.getElementById('inH2'), document.getElementById('inH1')];
+const adjInput = document.getElementById('inAdj');
+const adjBar = document.getElementById('adjustBar');
+const arrL = document.getElementById('arrL');
+const arrR = document.getElementById('arrR');
+let active = 0;
+
+function setActive(i) {
+  active = i;
+  inputs.forEach((f, idx) => f.classList.toggle('active', idx === i));
+  adjInput.classList.remove('active');
+}
+
+inputs.forEach((f, i) => {
+  f.addEventListener('touchend', e => { e.preventDefault(); setActive(i); });
+  f.addEventListener('click', e => { e.preventDefault(); setActive(i); });
+});
+setActive(0);
+
+function calc() {
+  const l = parseFloat(inputs[0].value);
+  const k = parseFloat(inputs[1].value);
+  const h2 = parseFloat(inputs[2].value);
+  const h1 = parseFloat(inputs[3].value);
+  adjBar.classList.remove('show');
+  if (isNaN(l) || isNaN(k) || isNaN(h2) || isNaN(h1) || k === 0) { adjInput.value = ''; return; }
+  const H = Math.abs(l * (h2 - h1) / (4 * k));
+  adjInput.value = H.toFixed(4);
+  if (H === 0) return;
+  // Show direction: arrows point the way to push the fence
+  if ((h2 - h1) > 0) { arrL.textContent = '◀'; arrR.textContent = '◀'; }
+  else { arrL.textContent = '▶'; arrR.textContent = '▶'; }
+  adjBar.classList.add('show');
+}
+
+function handleBtn(v) {
+  const f = inputs[active];
+  if (v === 'DEL') { f.value = ''; }
+  else if (v === 'BS') { f.value = f.value.slice(0, -1); }
+  else if (v === 'ENTER') { setActive((active + 1) % inputs.length); }
+  else { f.value += v; }
+  calc();
+}
+
+document.querySelectorAll('.numpad button').forEach(btn => {
+  btn.addEventListener('touchend', e => { e.preventDefault(); if (btn.dataset.v) handleBtn(btn.dataset.v); });
+  btn.addEventListener('click', e => { e.preventDefault(); if (btn.dataset.v) handleBtn(btn.dataset.v); });
+});
+
+document.getElementById('btnNew').addEventListener('click', () => {
+  inputs.forEach(f => f.value = '');
+  adjInput.value = '';
+  adjBar.classList.remove('show');
+  setActive(0);
+});
+
+document.addEventListener('keydown', e => {
+  const f = inputs[active];
+  if (e.key >= '0' && e.key <= '9' || e.key === '.') { f.value += e.key; calc(); }
+  else if (e.key === 'Backspace') { f.value = f.value.slice(0, -1); calc(); }
+  else if (e.key === 'Tab') { e.preventDefault(); setActive((active + (e.shiftKey ? 3 : 1)) % inputs.length); }
+  else if (e.key === 'Enter') { setActive((active + 1) % inputs.length); }
+});
+</script>
+</body>
+</html>
