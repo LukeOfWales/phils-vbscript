@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Phil's Tools</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, system-ui, sans-serif; background: #1a1a2e; color: #eee; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
+h1 { font-size: 1.5rem; margin-bottom: 8px; }
+p { color: #888; font-size: 0.9rem; margin-bottom: 32px; }
+.tools { display: grid; grid-template-columns: 1fr; gap: 12px; width: 100%; max-width: 400px; }
+.tool-link { display: flex; align-items: center; gap: 14px; padding: 16px 20px; background: #252540; border: 1px solid #333; border-radius: 12px; text-decoration: none; color: #eee; transition: background 0.15s; }
+.tool-link:active { background: #333; }
+.tool-icon { font-size: 1.8rem; }
+.tool-info { flex: 1; }
+.tool-name { font-weight: 600; font-size: 1rem; }
+.tool-desc { font-size: 0.75rem; color: #888; margin-top: 2px; }
+.chevron { color: #555; font-size: 1.2rem; }
+</style>
+</head>
+<body>
+<h1>Phil's Tools</h1>
+<p>Workshop calculators &amp; utilities</p>
+<div class="tools">
+  <a class="tool-link" href="table-saw-project/">
+    <span class="tool-icon">🪚</span>
+    <div class="tool-info">
+      <div class="tool-name">Table Saw — 5 Cut Method</div>
+      <div class="tool-desc">Calculate fence adjustment for squaring</div>
+    </div>
+    <span class="chevron">›</span>
+  </a>
+</div>
+</body>
+</html>
